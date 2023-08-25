@@ -25,4 +25,21 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message })
 })
 
+
+const uriDb = 'mongodb+srv://aleksandraaleksinska:!Mu%3AjLhGccy4n2h@cluster0.oplpakl.mongodb.net/?retryWrites=true&w=majority';
+
+mongoose.connect(uriDb, {
+  dbName: 'db-contacts',
+  useUnifiedTopology: true,
+  // useFindAndModify: false,
+})
+.then(() => {
+  console.log('Database connection successful')
+})
+.catch((error) => {
+  console.log("Database error message:", error.message);
+	process.exit(1);
+})
+
+
 module.exports = app
