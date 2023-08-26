@@ -26,12 +26,11 @@ app.use((err, req, res, next) => {
 })
 
 
-const uriDb = 'mongodb+srv://aleksandraaleksinska:!Mu%3AjLhGccy4n2h@cluster0.oplpakl.mongodb.net/?retryWrites=true&w=majority';
+const uriDb = process.env.DB_HOST;
 
 mongoose.connect(uriDb, {
   dbName: 'db-contacts',
   useUnifiedTopology: true,
-  // useFindAndModify: false,
 })
 .then(() => {
   console.log('Database connection successful')
@@ -42,4 +41,4 @@ mongoose.connect(uriDb, {
 })
 
 
-module.exports = app
+module.exports = app;
