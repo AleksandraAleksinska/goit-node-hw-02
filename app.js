@@ -1,6 +1,9 @@
 const express = require('express')
 const logger = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose');
+
+require('dotenv').config();
 
 const contactsRouter = require('./routes/api/contacts')
 
@@ -22,4 +25,20 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: err.message })
 })
 
-module.exports = app
+
+const uriDb = process.env.DB_HOST;
+
+mongoose.connect(uriDb, {
+  dbName: 'db-contacts',
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log('Database connection successful')
+})
+.catch((error) => {
+  console.log("Database error message:", error.message);
+	process.exit(1);
+})
+
+
+module.exports = app;
