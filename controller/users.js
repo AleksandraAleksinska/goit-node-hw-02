@@ -1,15 +1,7 @@
 const service = require('../service/users');
 const validation = require('../models/validation');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-
-const hashPassword = (password) => {
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
-    return hash;
-}
 
 const register = async (req, res, next) => {
     const { email, password } = req.body;
@@ -21,8 +13,7 @@ const register = async (req, res, next) => {
             error: newUserValidation.error,
         });
     }
-    try {
-        const user = await service.getUserByEmail(req.body.email);
+    const user = await service.getUserByEmail(req.body.email);
         if(user) {
             return res.status(409).json({
 				status: "fail",
@@ -30,9 +21,13 @@ const register = async (req, res, next) => {
 				message: "Email in use",
 			});
         }
-        const hashedPassword = await hashPassword(password);
-        const result = await service.registerUser({ email, password: hashedPassword });
-        res.status(201).json({ result });
+    try {      
+        const hashedPassword = service.hashPassword(password);
+        const user = await service.registerUser({ email, password: hashedPassword });        
+        res.status(201).json({ user: {
+            email: user.email,
+            subscription: user.subscription
+        } });
     } catch (e) {
         console.error(e);
         next(e);
@@ -40,7 +35,6 @@ const register = async (req, res, next) => {
 }
 
 const login = async (req, res, next) => {
-    const { email, password } = req.body;
     const loginValidation = validation.userSchema.validate(req.body);
     if (loginValidation.error){
         return res.status(400).json({
@@ -50,46 +44,39 @@ const login = async (req, res, next) => {
         });
     }
     try {
-        const user = await service.getUserByEmail(email);
-        
-        if (user) {
-            bcrypt.compare(password, user.password, function(err, result) {
-                if (err || !result) {
-                    return res.status(400).json({                
-                        message: "Email or password is wrong",  
-                    });
-                } else {
-                    const token = jwt.sign(
-                        {
-                            email: user.email,
-                            _id: user._id,
-                        },
-                        process.env.SECRET_KEY,
-                        { expiresIn: "1h" }
-                    );
-                    return res.status(200).json({
-                        "token": token ,
-                        "user": {
-                            "email": `${user.email}`,
-                            "subscription": "starter"
-                        }
-                    });
-                }
-            });
-        } else {
-            return res.status(400).json({                
-                message: "Email or password is wrong",  
-            });
-        }
-    } catch (e) {
+        const user = await service.loginUser(req.body);
+		if (user) {
+			res.status(200).json({ user	});
+		} else {
+			res.status(400).json({ message: "Incorrect login or password" });
+		}
+	} catch (e) {
         console.error(e);
         next(e);
     }
 }
 
+const logout = async (req, res, next) => {
+	try {
+		await service.logoutUSer(req._id);
+		res.status(204)
+	} catch (error) {
+		next(error);
+	}
+};
+
+const current = async (req, res, next) => {
+	try {
+		const { email, subscription } = req.user;
+		res.status(200).json({ email, subscription });
+	} catch (error) {
+		next(error);
+	}
+};
 
 module.exports = {
     register,
-    hashPassword,
     login,
+    logout,
+    current
 }
