@@ -20,9 +20,15 @@ const updateFavoriteSchema = Joi.object({
 	favorite: Joi.boolean().required(),
 });
 
+const userSchema = Joi.object({
+	email: Joi.string().email().required(),
+	password: Joi.string().min(6).required(),
+});
+
 module.exports = {
     schema,
     contactSchema,
     updateContactSchema,
     updateFavoriteSchema,
+    userSchema,
 }; 
