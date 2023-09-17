@@ -1,6 +1,12 @@
 const service = require('../service/users');
 const validation = require('../models/validation');
 require('dotenv').config();
+const Jimp = require("jimp");
+const gravatar = require("gravatar");
+const fs = require("fs/promises");
+const path = require("path");
+const { v4: uuidv4 } = require('uuid');
+
 
 
 const register = async (req, res, next) => {
@@ -22,11 +28,13 @@ const register = async (req, res, next) => {
 			});
         }
     try {      
+        const avatarURL = gravatar.url(req.body.email);
         const hashedPassword = service.hashPassword(password);
-        const user = await service.registerUser({ email, password: hashedPassword });        
+        const user = await service.registerUser({ email, password: hashedPassword, avatarURL });       
         res.status(201).json({ user: {
             email: user.email,
-            subscription: user.subscription
+            subscription: user.subscription,
+            avatarURL
         } });
     } catch (e) {
         console.error(e);
@@ -74,9 +82,29 @@ const current = async (req, res, next) => {
 	}
 };
 
+const updateAvatar = async (req, res, next) => {
+    try {
+        const file  = req.file;
+        const avatar = await Jimp.read(file.path);
+        
+        await avatar.cover(250, 250).writeAsync(file.path)
+
+        const avatarFileName = `${uuidv4()}-${file.originalname}`;
+        const newPath = path.join(__dirname, `../public/avatars/${avatarFileName}`);
+        await fs.rename(file.path, newPath);
+        const avatarURL = `/avatars/${avatarFileName}`;
+        res.status(200).json({ avatarURL });
+
+    } catch (error) {
+      console.error(error);
+      next(error);  
+    }
+  } 
+
 module.exports = {
     register,
     login,
     logout,
-    current
+    current,
+    updateAvatar
 }

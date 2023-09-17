@@ -14,8 +14,8 @@ const getUserByEmail = async (email) => {
 	return User.findOne({ email });
 };
 
-const registerUser = async ({ email, password }) => {
-    const newUser = new User({ email, password })
+const registerUser = async ({ email, password, avatarURL }) => {
+    const newUser = new User({ email, password, avatarURL })
     await newUser.save();
     return newUser
 }
@@ -47,7 +47,6 @@ const logoutUSer = async (id) => {
 		console.error(error);
 	}
 };
-
 
 module.exports = {
     hashPassword,
