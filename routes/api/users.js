@@ -9,5 +9,7 @@ router.post('/users/login', ctrlUsers.login);
 router.get('/users/logout', auth,  ctrlUsers.logout);
 router.get('/users/current', auth, ctrlUsers.current);
 router.patch('/users/avatars', auth, upload.single('avatar'), ctrlUsers.updateAvatar);
+router.get('/users/verify/:verificationToken', ctrlUsers.verifyUSer);
+router.post('/users/verify/', ctrlUsers.resendVerificationEmail);
 
 module.exports = router

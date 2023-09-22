@@ -13,9 +13,12 @@ const checkPassword = (password, hash) => bcrypt.compareSync(password, hash);
 const getUserByEmail = async (email) => {
 	return User.findOne({ email });
 };
+const getUserByVerificationToken = async (verificationToken) => {
+	return User.findOne({ verificationToken });
+};
 
-const registerUser = async ({ email, password, avatarURL }) => {
-    const newUser = new User({ email, password, avatarURL })
+const registerUser = async ({ email, password, avatarURL, verificationToken }) => {
+    const newUser = new User({ email, password, avatarURL, verificationToken })
     await newUser.save();
     return newUser
 }
@@ -48,10 +51,21 @@ const logoutUSer = async (id) => {
 	}
 };
 
+const verifyToken = async (tokenToVerify) => {
+	try {		
+		return await User.findOneAndUpdate({ verificationToken: tokenToVerify}, { $set: {verificationToken: null, verify: true }})
+	}
+	catch (error) {
+		console.log(error)
+	}
+}
+
 module.exports = {
     hashPassword,
     getUserByEmail, 
+	getUserByVerificationToken,
     registerUser,
     loginUser,
-    logoutUSer
+    logoutUSer,
+	verifyToken
 }
