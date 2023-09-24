@@ -58,10 +58,10 @@ const login = async (req, res, next) => {
     }
     try {
         const user = await service.loginUser(req.body);
-		if (user) {
+		if (user && user.verify) {
 			res.status(200).json({ user	});
 		} else {
-			res.status(400).json({ message: "Incorrect login or password" });
+			res.status(400).json({ message: "Incorrect login or password or user not verified" });
 		}
 	} catch (e) {
         console.error(e);
